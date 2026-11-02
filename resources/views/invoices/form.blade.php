@@ -1,6 +1,26 @@
 <x-layouts.app :title="$invoice->exists ? 'Edit invoice' : 'New invoice'">
     @php($lines = old('lines', $invoice->exists ? $invoice->lines->map->only('description', 'quantity', 'unit_price', 'tax_rate')->all() : [['description' => '', 'quantity' => 1, 'unit_price' => '', 'tax_rate' => $defaultTaxRate]]))
     <h1 class="mb-6 text-xl font-semibold">{{ $invoice->exists ? 'Edit invoice' : 'New invoice' }}</h1>
+
+    @unless ($invoice->exists)
+        {{-- Describe the invoice in a sentence; Claude fills the form below for review. Part 2 of the series. --}}
+        <form method="post" action="{{ route('invoices.draft') }}" class="mb-8 rounded-md border border-zinc-200 bg-zinc-50 p-4" id="draft-form">
+            @csrf
+            <label for="description" class="block text-sm font-medium">Describe the invoice</label>
+            <textarea id="description" name="description" rows="2" placeholder="e.g. Invoice Acme for 12 hours of consulting at 150 an hour and a 300 setup fee"
+                      class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2">{{ old('description') }}</textarea>
+            @error('description') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
+            <div class="mt-2 flex items-center gap-3">
+                <button type="submit" class="rounded-md border border-zinc-900 px-3 py-1.5 text-sm">Draft with Claude</button>
+                @if (session('draft_error')) <p class="text-sm text-red-700" role="alert">{{ session('draft_error') }}</p> @endif
+            </div>
+            @if (session('draft_unresolved'))
+                <p class="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900" role="alert">
+                    <span class="font-medium">Could not fill in:</span> {{ session('draft_unresolved') }}
+                </p>
+            @endif
+        </form>
+    @endunless
     <form method="post" action="{{ $invoice->exists ? route('invoices.update', $invoice) : route('invoices.store') }}" class="space-y-6" id="invoice-form">
         @csrf
         @if ($invoice->exists) @method('put') @endif

@@ -50,6 +50,12 @@ final class FakeClaude implements ClientInterface
         ];
     }
 
+    /** A structured-output response: the JSON the schema asked for, inside one text block. */
+    public static function json(array $data, int $inputTokens = 10, int $outputTokens = 5): array
+    {
+        return self::text(json_encode($data), $inputTokens, $outputTokens);
+    }
+
     /** An error the API returns with a status, in the API's error envelope. */
     public static function error(int $status, string $type, string $message): array
     {
