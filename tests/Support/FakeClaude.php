@@ -50,6 +50,17 @@ final class FakeClaude implements ClientInterface
         ];
     }
 
+    /** A reply that asks the app to run a tool: one tool_use block and the matching stop reason. */
+    public static function toolUse(string $name, array $input, string $id = 'toolu_01', int $inputTokens = 10, int $outputTokens = 5): array
+    {
+        return [
+            ...self::text('', $inputTokens, $outputTokens),
+            'id' => 'msg_test_'.$id,
+            'content' => [['type' => 'tool_use', 'id' => $id, 'name' => $name, 'input' => $input]],
+            'stop_reason' => 'tool_use',
+        ];
+    }
+
     /** A structured-output response: the JSON the schema asked for, inside one text block. */
     public static function json(array $data, int $inputTokens = 10, int $outputTokens = 5): array
     {

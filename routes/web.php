@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssistantController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoiceDraftController;
@@ -22,6 +23,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
     Route::post('/invoices/{invoice}/void', [InvoiceController::class, 'void'])->name('invoices.void');
     Route::get('/invoices/{invoice}/reminder', InvoiceReminderController::class)->name('invoices.reminder');
+    Route::get('/assistant', [AssistantController::class, 'index'])->name('assistant.index');
+    Route::post('/assistant', [AssistantController::class, 'store'])->name('assistant.store');
+    Route::get('/assistant/{conversation}', [AssistantController::class, 'show'])->name('assistant.show');
+    Route::post('/assistant/{conversation}', [AssistantController::class, 'ask'])->name('assistant.ask');
 });
 
 Route::post('/webhooks/payments', PaymentWebhookController::class)

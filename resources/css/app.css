@@ -7,3 +7,10 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* The assistant's answers are markdown rendered to HTML; Tailwind's reset removes list and
+   paragraph styling, so give them back inside .prose. */
+.prose p + p, .prose ul, .prose ol { margin-top: 0.5rem; }
+.prose ul { list-style: disc; padding-left: 1.25rem; }
+.prose ol { list-style: decimal; padding-left: 1.25rem; }
+.prose code { font-family: ui-monospace, monospace; font-size: 0.85em; }

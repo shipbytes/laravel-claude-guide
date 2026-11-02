@@ -2,13 +2,15 @@
 
 namespace App\AI;
 
+use Anthropic\Beta\Messages\BetaUsage;
 use Anthropic\Messages\Usage;
 
 // Turns a response's token counts into dollars, using the price table in config/claude.php.
 // Cached tokens are billed differently; part 5 extends this when the app starts caching.
 final class Cost
 {
-    public static function of(string $model, Usage $usage): float
+    // The beta namespace (the tool runner lives there) has its own Usage class with the same fields.
+    public static function of(string $model, Usage|BetaUsage $usage): float
     {
         $prices = config("claude.prices.{$model}");
 
