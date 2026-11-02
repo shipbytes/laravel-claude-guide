@@ -23,3 +23,7 @@ arch('controllers')
 arch('jobs and queued listeners are serialisable work')
     ->expect('App\Jobs')
     ->toImplement('Illuminate\Contracts\Queue\ShouldQueue');
+
+arch('requests and models never talk to the Claude API directly; that work lives in App\AI')
+    ->expect(['App\Http', 'App\Models'])
+    ->not->toUse('Anthropic');
