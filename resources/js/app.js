@@ -25,3 +25,51 @@ if (table) {
         reindex();
     });
 }
+
+// Payment reminder: open the event stream, append each delta to the box, stop on done,
+// error, or the Stop button. EventSource reconnects on its own after a drop, which would
+// start a second reminder, so every exit path closes it explicitly.
+const reminder = document.getElementById('reminder');
+if (reminder) {
+    const text = document.getElementById('reminder-text');
+    const status = document.getElementById('reminder-status');
+    const write = document.getElementById('reminder-write');
+    const stop = document.getElementById('reminder-stop');
+    const copy = document.getElementById('reminder-copy');
+    let source = null;
+
+    const finish = (note) => {
+        source?.close();
+        source = null;
+        status.textContent = note;
+        stop.classList.add('hidden');
+        write.disabled = false;
+        if (text.value) copy.classList.remove('hidden');
+    };
+
+    write.addEventListener('click', () => {
+        text.value = '';
+        text.classList.remove('hidden');
+        copy.classList.add('hidden');
+        stop.classList.remove('hidden');
+        write.disabled = true;
+        status.textContent = 'Thinking…';
+
+        source = new EventSource(reminder.dataset.url);
+        source.addEventListener('delta', (event) => {
+            if (!text.value) status.textContent = 'Writing…';
+            text.value += event.data;
+        });
+        source.addEventListener('done', (event) => {
+            const { stopReason, cost } = JSON.parse(event.data);
+            finish(stopReason === 'end_turn' ? `Done, ${cost}.` : `Stopped early (${stopReason}), ${cost}.`);
+        });
+        source.addEventListener('error', (event) => {
+            // Our own error event carries data; a dropped connection does not.
+            finish(event.data ?? 'Connection lost.');
+        });
+    });
+    stop.addEventListener('click', () => finish('Stopped.'));
+    copy.addEventListener('click', () => navigator.clipboard.writeText(text.value).then(() => { status.textContent = 'Copied.'; }));
+}
+

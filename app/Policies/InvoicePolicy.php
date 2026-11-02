@@ -34,6 +34,12 @@ class InvoicePolicy
         return $this->update($user, $invoice);
     }
 
+    /** A reminder makes sense for a sent invoice that is not yet paid, whoever in the company asks. */
+    public function remind(User $user, Invoice $invoice): bool
+    {
+        return $this->view($user, $invoice) && $invoice->status === InvoiceStatus::Sent;
+    }
+
     public function void(User $user, Invoice $invoice): bool
     {
         return $this->view($user, $invoice) && $invoice->status->canTransitionTo(InvoiceStatus::Void);

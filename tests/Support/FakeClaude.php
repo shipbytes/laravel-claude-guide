@@ -56,6 +56,39 @@ final class FakeClaude implements ClientInterface
         return self::text(json_encode($data), $inputTokens, $outputTokens);
     }
 
+    /**
+     * A streaming response: the text split into pieces and sent as server-sent events in
+     * the API's order. An `$errorAfter` count injects an `error` event mid-stream.
+     */
+    public static function stream(string $text, int $inputTokens = 10, int $outputTokens = 5, string $model = 'claude-opus-5-5', ?int $errorAfter = null): array
+    {
+        $message = ['id' => 'msg_test_stream', 'type' => 'message', 'role' => 'assistant', 'model' => $model, 'content' => [],
+            'stop_reason' => null, 'stop_sequence' => null, 'usage' => ['input_tokens' => $inputTokens, 'output_tokens' => 1]];
+        $events = [
+            ['message_start', ['type' => 'message_start', 'message' => $message]],
+            ['content_block_start', ['type' => 'content_block_start', 'index' => 0, 'content_block' => ['type' => 'text', 'text' => '']]],
+        ];
+        foreach (preg_split('/(?<=\s)/', $text) as $i => $piece) {
+            if ($errorAfter !== null && $i >= $errorAfter) {
+                $events[] = ['error', ['type' => 'error', 'error' => ['type' => 'overloaded_error', 'message' => 'Overloaded']]];
+                break;
+            }
+            $events[] = ['content_block_delta', ['type' => 'content_block_delta', 'index' => 0, 'delta' => ['type' => 'text_delta', 'text' => $piece]]];
+        }
+        if ($errorAfter === null) {
+            $events[] = ['content_block_stop', ['type' => 'content_block_stop', 'index' => 0]];
+            $events[] = ['message_delta', ['type' => 'message_delta', 'delta' => ['stop_reason' => 'end_turn', 'stop_sequence' => null], 'usage' => ['output_tokens' => $outputTokens]]];
+            $events[] = ['message_stop', ['type' => 'message_stop']];
+        }
+
+        $body = '';
+        foreach ($events as [$name, $data]) {
+            $body .= "event: {$name}\ndata: ".json_encode($data)."\n\n";
+        }
+
+        return ['__sse' => $body];
+    }
+
     /** An error the API returns with a status, in the API's error envelope. */
     public static function error(int $status, string $type, string $message): array
     {
@@ -64,6 +97,12 @@ final class FakeClaude implements ClientInterface
 
     public function queue(array $body): void
     {
+        if (isset($body['__sse'])) {
+            $this->responses[] = new Response(200, ['Content-Type' => 'text/event-stream'], $body['__sse']);
+
+            return;
+        }
+
         $status = $body['__status'] ?? 200;
         unset($body['__status']);
 

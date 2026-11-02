@@ -25,6 +25,20 @@
 
     @error('invoice') <p class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800" role="alert">{{ $message }}</p> @enderror
 
+    @can('remind', $invoice)
+        {{-- Part 3 of the series: Claude writes a payment reminder, streamed into the box as it is written. --}}
+        <section class="mb-6 rounded-md border border-zinc-200 bg-zinc-50 p-4" id="reminder" data-url="{{ route('invoices.reminder', $invoice) }}">
+            <div class="flex items-center gap-3">
+                <h2 class="text-sm font-medium">Payment reminder</h2>
+                <button type="button" id="reminder-write" class="rounded-md border border-zinc-900 px-3 py-1.5 text-sm">Write with Claude</button>
+                <button type="button" id="reminder-stop" class="hidden rounded-md border border-zinc-300 px-3 py-1.5 text-sm">Stop</button>
+                <button type="button" id="reminder-copy" class="hidden rounded-md border border-zinc-300 px-3 py-1.5 text-sm">Copy</button>
+                <p id="reminder-status" class="text-sm text-zinc-500" role="status"></p>
+            </div>
+            <textarea id="reminder-text" rows="10" class="mt-3 hidden w-full rounded-md border border-zinc-300 px-3 py-2 font-mono text-sm" aria-label="Reminder email"></textarea>
+        </section>
+    @endcan
+
     <table class="w-full rounded-lg border border-zinc-200 bg-white text-sm">
         <thead class="bg-zinc-100 text-left text-xs uppercase tracking-wide text-zinc-500">
             <tr><th class="px-4 py-2">Description</th><th class="px-4 py-2 text-right">Qty</th><th class="px-4 py-2 text-right">Unit</th><th class="px-4 py-2 text-right">Tax</th><th class="px-4 py-2 text-right">Net</th></tr>
