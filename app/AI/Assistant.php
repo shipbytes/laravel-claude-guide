@@ -3,12 +3,10 @@
 namespace App\AI;
 
 use Anthropic\Beta\Messages\BetaMessage;
-use Anthropic\Beta\Messages\BetaToolUseBlock;
 use Anthropic\Client;
 use Anthropic\Core\Exceptions\APIConnectionException;
 use Anthropic\Core\Exceptions\APIStatusException;
 use App\Models\Conversation;
-use Illuminate\Support\Facades\Log;
 
 // Answers a question about the company's invoices by letting Claude call the read-only tools
 // in AssistantTools. The SDK's tool runner drives the loop: send, run the tools Claude asked
@@ -48,16 +46,7 @@ final class Assistant
                 $steps++;
                 $last = $message;
 
-                Log::info('claude.assistant', [
-                    'conversation_id' => $conversation->id,
-                    'step' => $steps,
-                    'stop_reason' => $message->stopReason,
-                    'tools' => array_map(fn ($b) => $b->name, array_filter($message->content, fn ($b) => $b instanceof BetaToolUseBlock)),
-                    'input_tokens' => $message->usage->inputTokens,
-                    'cache_read_input_tokens' => $message->usage->cacheReadInputTokens,
-                    'output_tokens' => $message->usage->outputTokens,
-                    'cost' => Cost::of($model, $message->usage),
-                ]);
+                Usage::record('assistant', $model, $message->usage, $conversation->company, $message->stopReason);
             }
         } catch (APIStatusException|APIConnectionException $e) {
             throw new AssistantFailed('Claude could not answer: '.$e->getMessage(), previous: $e);

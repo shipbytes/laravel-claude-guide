@@ -100,6 +100,30 @@ final class FakeClaude implements ClientInterface
         return ['__sse' => $body];
     }
 
+    /** The answer to a count_tokens request. */
+    public static function tokenCount(int $inputTokens): array
+    {
+        return ['input_tokens' => $inputTokens];
+    }
+
+    /** A message batch object, as retrieve() or create() returns it. */
+    public static function batch(string $id, string $status = 'in_progress', int $processing = 0, int $succeeded = 0, int $errored = 0): array
+    {
+        return [
+            'id' => $id, 'type' => 'message_batch', 'processing_status' => $status,
+            'request_counts' => ['processing' => $processing, 'succeeded' => $succeeded, 'errored' => $errored, 'canceled' => 0, 'expired' => 0],
+            'created_at' => '2026-11-03T06:00:00Z', 'expires_at' => '2026-11-04T06:00:00Z',
+            'ended_at' => $status === 'ended' ? '2026-11-03T06:20:00Z' : null, 'archived_at' => null, 'cancel_initiated_at' => null,
+            'results_url' => $status === 'ended' ? "https://api.anthropic.com/v1/messages/batches/{$id}/results" : null,
+        ];
+    }
+
+    /** Batch results: one line of JSON per request, each with the message or the error. */
+    public static function batchResults(array $items): array
+    {
+        return ['__raw' => implode("\n", array_map('json_encode', $items))."\n", '__type' => 'application/x-jsonl'];
+    }
+
     /** An error the API returns with a status, in the API's error envelope. */
     public static function error(int $status, string $type, string $message): array
     {
@@ -110,6 +134,11 @@ final class FakeClaude implements ClientInterface
     {
         if (isset($body['__sse'])) {
             $this->responses[] = new Response(200, ['Content-Type' => 'text/event-stream'], $body['__sse']);
+
+            return;
+        }
+        if (isset($body['__raw'])) {
+            $this->responses[] = new Response(200, ['Content-Type' => $body['__type']], $body['__raw']);
 
             return;
         }

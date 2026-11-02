@@ -6,7 +6,6 @@ use Anthropic\Client;
 use Anthropic\Core\Exceptions\APIConnectionException;
 use Anthropic\Core\Exceptions\APIStatusException;
 use App\Models\Company;
-use Illuminate\Support\Facades\Log;
 
 // Turns a plain-English request into an InvoiceDraft for one company. The company's own
 // data (clients, defaults, today's date) goes in the system prompt; the user's text is the
@@ -37,13 +36,7 @@ final class InvoiceDrafter
             throw new DraftFailed("Claude stopped early ({$message->stopReason}); the draft is incomplete.");
         }
 
-        Log::info('claude.draft', [
-            'company_id' => $company->id,
-            'model' => $model,
-            'input_tokens' => $message->usage->inputTokens,
-            'output_tokens' => $message->usage->outputTokens,
-            'cost' => Cost::of($model, $message->usage),
-        ]);
+        Usage::record('draft', $model, $message->usage, $company, $message->stopReason);
 
         $draft = $message->parsedOutput();
 

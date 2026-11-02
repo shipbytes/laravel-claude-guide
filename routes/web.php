@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoiceDraftController;
 use App\Http\Controllers\InvoiceReminderController;
+use App\Http\Controllers\SummariesController;
 use App\Http\Controllers\Webhooks\PaymentWebhookController;
 use App\Http\Middleware\VerifyPaymentWebhook;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +24,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
     Route::post('/invoices/{invoice}/void', [InvoiceController::class, 'void'])->name('invoices.void');
     Route::get('/invoices/{invoice}/reminder', InvoiceReminderController::class)->name('invoices.reminder');
+    Route::get('/summaries', SummariesController::class)->name('summaries.index');
     Route::get('/assistant', [AssistantController::class, 'index'])->name('assistant.index');
     Route::post('/assistant', [AssistantController::class, 'store'])->name('assistant.store');
     Route::get('/assistant/{conversation}', [AssistantController::class, 'show'])->name('assistant.show');

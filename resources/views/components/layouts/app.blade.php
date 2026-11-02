@@ -14,6 +14,7 @@
                 <form method="post" action="{{ route('logout') }}" class="flex items-center gap-4 text-sm">
                     @csrf
                     <a href="{{ route('assistant.index') }}" class="text-zinc-600 hover:text-zinc-900">Assistant</a>
+                    <a href="{{ route('summaries.index') }}" class="text-zinc-600 hover:text-zinc-900">Summaries</a>
                     <span class="text-zinc-500">{{ auth()->user()->company->name }}</span>
                     <button type="submit" class="text-zinc-600 hover:text-zinc-900">Log out</button>
                 </form>

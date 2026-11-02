@@ -11,6 +11,9 @@ beforeEach(function () {
     $this->acme = Client::factory()->for($this->company)->create(['name' => 'Acme GmbH']);
 });
 
+// Part 5 put a Haiku classifier in front of the drafter; it answers first in every test.
+$yes = fn () => FakeClaude::json(['isInvoiceRequest' => true, 'reason' => ''], inputTokens: 60, outputTokens: 12);
+
 $acmeDraft = fn () => [
     'clientName' => 'Acme GmbH',
     'currency' => 'EUR',
@@ -23,8 +26,8 @@ $acmeDraft = fn () => [
     'unresolved' => null,
 ];
 
-it('prefills the form from the draft', function () use ($acmeDraft) {
-    FakeClaude::bind(FakeClaude::json($acmeDraft()));
+it('prefills the form from the draft', function () use ($yes, $acmeDraft) {
+    FakeClaude::bind($yes(), FakeClaude::json($acmeDraft()));
 
     $this->actingAs($this->user)
         ->post(route('invoices.draft'), ['description' => 'Invoice Acme for 12 hours of consulting at 150 an hour and a 300 setup fee'])
@@ -44,8 +47,8 @@ it('prefills the form from the draft', function () use ($acmeDraft) {
         ->assertSee('value="15000"', escape: false);
 });
 
-it('asks for the draft schema, with the company context in the system prompt', function () use ($acmeDraft) {
-    $claude = FakeClaude::bind(FakeClaude::json($acmeDraft()));
+it('asks for the draft schema, with the company context in the system prompt', function () use ($yes, $acmeDraft) {
+    $claude = FakeClaude::bind($yes(), FakeClaude::json($acmeDraft()));
 
     $this->actingAs($this->user)->post(route('invoices.draft'), ['description' => 'Invoice Acme for 12 hours of consulting at 150']);
 
@@ -61,8 +64,8 @@ it('asks for the draft schema, with the company context in the system prompt', f
         ->and($body['messages'])->toBe([['role' => 'user', 'content' => 'Invoice Acme for 12 hours of consulting at 150']]);
 });
 
-it('leaves the client empty and says why when the text names nobody it knows', function (?string $clientName) use ($acmeDraft) {
-    FakeClaude::bind(FakeClaude::json([...$acmeDraft(), 'clientName' => $clientName, 'unresolved' => 'No client named Globex is known.']));
+it('leaves the client empty and says why when the text names nobody it knows', function (?string $clientName) use ($yes, $acmeDraft) {
+    FakeClaude::bind($yes(), FakeClaude::json([...$acmeDraft(), 'clientName' => $clientName, 'unresolved' => 'No client named Globex is known.']));
 
     $this->actingAs($this->user)
         ->post(route('invoices.draft'), ['description' => 'Invoice Globex for 12 hours of consulting at 150'])
@@ -74,9 +77,9 @@ it('leaves the client empty and says why when the text names nobody it knows', f
         ->and(session()->getOldInput('lines'))->toHaveCount(2);
 })->with(['null, as the schema allows' => [null], 'an empty string, as the model sometimes sends' => ['']]);
 
-it('never matches a client of another company', function () use ($acmeDraft) {
+it('never matches a client of another company', function () use ($yes, $acmeDraft) {
     Client::factory()->create(['name' => 'Initech']); // someone else's client
-    FakeClaude::bind(FakeClaude::json([...$acmeDraft(), 'clientName' => 'Initech']));
+    FakeClaude::bind($yes(), FakeClaude::json([...$acmeDraft(), 'clientName' => 'Initech']));
 
     $this->actingAs($this->user)
         ->post(route('invoices.draft'), ['description' => 'Invoice Initech for 12 hours of consulting at 150'])
@@ -85,8 +88,8 @@ it('never matches a client of another company', function () use ($acmeDraft) {
     expect(session()->getOldInput('client_id'))->toBeNull();
 });
 
-it('tells the person when the API is down instead of a 500 page', function () {
-    FakeClaude::bind(FakeClaude::error(529, 'overloaded_error', 'Overloaded'));
+it('tells the person when the API is down instead of a 500 page', function () use ($yes) {
+    FakeClaude::bind($yes(), FakeClaude::error(529, 'overloaded_error', 'Overloaded'));
 
     $this->actingAs($this->user)
         ->post(route('invoices.draft'), ['description' => 'Invoice Acme for 12 hours of consulting at 150'])
@@ -95,10 +98,10 @@ it('tells the person when the API is down instead of a 500 page', function () {
         ->assertSessionHasInput('description', 'Invoice Acme for 12 hours of consulting at 150');
 });
 
-it('treats a truncated reply as a failure', function () use ($acmeDraft) {
+it('treats a truncated reply as a failure', function () use ($yes, $acmeDraft) {
     $response = FakeClaude::json($acmeDraft());
     $response['stop_reason'] = 'max_tokens';
-    FakeClaude::bind($response);
+    FakeClaude::bind($yes(), $response);
 
     $this->actingAs($this->user)
         ->post(route('invoices.draft'), ['description' => 'Invoice Acme for 12 hours of consulting at 150'])

@@ -14,10 +14,11 @@ return [
     ],
 
     // USD per million tokens, from https://claude.com/pricing#api on 3 November 2026.
-    // Used to put a price on every call the app makes; see app/AI/Cost.php.
+    // Used to put a price on every call the app makes; see app/AI/Cost.php. Haiku's rates
+    // are for prompts up to 100K tokens; this app never gets near that.
     'prices' => [
-        'claude-opus-5-5' => ['input' => 4.00, 'output' => 20.00],
-        'claude-haiku-5-5' => ['input' => 0.10, 'output' => 0.50],
+        'claude-opus-5-5' => ['input' => 4.00, 'cache_read' => 0.20, 'cache_write' => 5.00, 'output' => 20.00],
+        'claude-haiku-5-5' => ['input' => 0.10, 'cache_read' => 0.01, 'cache_write' => 0.125, 'output' => 0.50],
     ],
 
     // Seconds before a request is abandoned, and how many times the SDK retries a 429,

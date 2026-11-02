@@ -11,7 +11,6 @@ use Anthropic\Messages\RawContentBlockDeltaEvent;
 use Anthropic\Messages\TextDelta;
 use App\Billing\Money;
 use App\Models\Invoice;
-use Illuminate\Support\Facades\Log;
 
 // Writes a payment reminder for a sent invoice and streams it as it is written. The
 // generator yields each piece of text the moment it arrives and returns the complete
@@ -48,14 +47,7 @@ final class ReminderWriter
 
         $message = $accumulator->message();
 
-        Log::info('claude.reminder', [
-            'invoice_id' => $invoice->id,
-            'model' => $model,
-            'stop_reason' => $message->stopReason,
-            'input_tokens' => $message->usage->inputTokens,
-            'output_tokens' => $message->usage->outputTokens,
-            'cost' => Cost::of($model, $message->usage),
-        ]);
+        Usage::record('reminder', $model, $message->usage, $invoice->company, $message->stopReason);
 
         return $message;
     }

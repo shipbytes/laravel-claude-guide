@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Anthropic\Client;
 use App\AI\Cost;
+use App\AI\Usage;
 use Illuminate\Console\Command;
 
 // The smallest possible round trip: one prompt in, one answer out, and what it cost.
@@ -33,6 +34,8 @@ class ClaudePing extends Command
                 $this->line($block->text);
             }
         }
+
+        Usage::record('ping', $model, $message->usage, stopReason: $message->stopReason);
 
         $this->newLine();
         $this->table(['model', 'stop reason', 'input tokens', 'output tokens', 'cost'], [[
