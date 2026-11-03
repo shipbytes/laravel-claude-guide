@@ -50,7 +50,7 @@ final class MonthlySummaryWriter
     public function params(Company $company, CarbonImmutable $month): array
     {
         return [
-            'maxTokens' => 4096,
+            'maxTokens' => 16000,
             'system' => 'You write a short monthly summary for the owner of a small business, from the figures given. Plain prose with a few short paragraphs; one bulleted list at most. Repeat amounts exactly as given, with their currency. Point out what needs attention: overdue invoices, clients who owe the most, a quiet month. Do not invent anything the figures do not show.',
             'messages' => [['role' => 'user', 'content' => $this->facts($company, $month)]],
         ];

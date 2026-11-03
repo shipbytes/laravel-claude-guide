@@ -65,7 +65,7 @@ it('sends the tools and a cached system prompt that names the company', function
     expect(array_column($body['tools'], 'name'))->toBe(['list_invoices', 'get_invoice', 'find_clients'])
         ->and($body['system'][0]['text'])->toContain('for Northwind')
         ->and($body['system'][0]['cache_control'])->toBe(['type' => 'ephemeral'])
-        ->and($body['max_tokens'])->toBe(2048);
+        ->and($body['max_tokens'])->toBe(8192);
 });
 
 it('never lets a tool reach another company\'s data', function () {

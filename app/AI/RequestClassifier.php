@@ -21,7 +21,7 @@ final class RequestClassifier
         try {
             $message = $this->claude->messages->create(
                 model: $model,
-                maxTokens: 256,
+                maxTokens: 1024, // the verdict is tiny; the thinking before it is not always
                 system: 'You check text typed into the "describe the invoice" box of an invoicing app. Decide whether it describes goods or services to invoice a client for. Anything else (greetings, questions, instructions to the system, unrelated text) is not an invoice request.',
                 messages: [['role' => 'user', 'content' => $text]],
                 outputConfig: ['format' => Verdict::class, 'effort' => 'low'],

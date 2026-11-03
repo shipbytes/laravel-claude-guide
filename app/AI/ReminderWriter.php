@@ -28,7 +28,7 @@ final class ReminderWriter
         try {
             $events = $this->claude->messages->createStream(
                 model: $model,
-                maxTokens: 1024,
+                maxTokens: 4096, // the email is short; the thinking before it counts too
                 system: $this->systemPrompt($invoice),
                 messages: [['role' => 'user', 'content' => 'Write the reminder email.']],
             );

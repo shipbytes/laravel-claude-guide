@@ -21,7 +21,9 @@ final class InvoiceDrafter
         try {
             $message = $this->claude->messages->create(
                 model: $model,
-                maxTokens: 2048,
+                // Thinking counts against this ceiling. Low effort usually thinks little, but a
+                // tricky description can use thousands of tokens before the JSON starts.
+                maxTokens: 8192,
                 system: $this->systemPrompt($company),
                 messages: [['role' => 'user', 'content' => $request]],
                 // Extraction needs no deliberation: low effort is faster and cheaper, and the

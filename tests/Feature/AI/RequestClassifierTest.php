@@ -20,7 +20,7 @@ it('turns away text that is not an invoice request before Opus is asked', functi
     // One request, to the fast model, and nothing to Opus.
     expect($claude->requests)->toHaveCount(1)
         ->and($claude->lastRequest()['body']['model'])->toBe('claude-haiku-5-5')
-        ->and($claude->lastRequest()['body']['max_tokens'])->toBe(256)
+        ->and($claude->lastRequest()['body']['max_tokens'])->toBe(1024)
         ->and(ClaudeCall::sole()->feature)->toBe('classify');
 });
 

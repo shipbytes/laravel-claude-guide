@@ -9,7 +9,6 @@ use App\Models\ClaudeCall;
 use App\Models\Client;
 use App\Models\Company;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 
 // Runs the invoice-draft eval set against the real API and grades every answer. The one
 // number that says whether a prompt change, a model change or a new SDK version made the
@@ -26,21 +25,44 @@ class ClaudeEval extends Command
         $model = $this->option('model') ?: config('claude.models.default');
         config(['claude.models.default' => $model]);
 
-        // The fixture company every case assumes, in a transaction that is rolled back.
-        DB::beginTransaction();
+        // The fixture company every case assumes. Created for the run and deleted after it,
+        // rather than wrapped in a transaction: a rollback would take the usage rows with it.
         $company = Company::create(['name' => 'Northwind', 'currency' => 'EUR', 'default_tax_rate' => 20, 'payment_terms_days' => 14, 'invoice_prefix' => 'INV']);
         foreach (['Acme GmbH', 'Blue Harbor Ltd', 'Kappa Studio'] as $name) {
             Client::create(['company_id' => $company->id, 'name' => $name, 'email' => str($name)->slug().'@example.test', 'country' => 'DE', 'currency' => 'EUR']);
         }
 
+        try {
+            [$rows, $passed, $spent] = $this->runCases($set['cases'], $company, $drafter);
+        } finally {
+            $company->clients()->delete();
+            $company->delete();
+        }
+
+        $rate = count($rows) ? round(100 * $passed / count($rows), 1) : 0;
+        $this->newLine();
+        $this->table(['model', 'cases', 'passed', 'pass rate', 'cost'], [[$model, count($rows), $passed, "{$rate}%", Cost::format($spent)]]);
+
+        if ($this->option('save')) {
+            $path = base_path("evals/results/{$this->argument('set')}-{$model}-".now()->format('Y-m-d').'.json');
+            file_put_contents($path, json_encode(['model' => $model, 'ran_at' => now()->toIso8601String(), 'pass_rate' => $rate, 'cost' => round($spent, 6), 'cases' => $rows], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n");
+            $this->info("Saved to {$path}");
+        }
+
+        return $rate >= (float) $this->option('min') ? self::SUCCESS : self::FAILURE;
+    }
+
+    /** @return array{0: list<array<string, mixed>>, 1: int, 2: float} rows, passed, dollars spent */
+    private function runCases(array $cases, Company $company, InvoiceDrafter $drafter): array
+    {
         $rows = [];
         $passed = 0;
         $spent = 0.0;
         $since = ClaudeCall::max('id') ?? 0;
 
-        foreach ($set['cases'] as $case) {
+        foreach ($cases as $case) {
             if ($spent >= (float) $this->option('budget')) {
-                $this->warn("Budget of \${$this->option('budget')} reached; ".(count($set['cases']) - count($rows)).' case(s) skipped.');
+                $this->warn("Budget of \${$this->option('budget')} reached; ".(count($cases) - count($rows)).' case(s) skipped.');
                 break;
             }
             try {
@@ -56,18 +78,6 @@ class ClaudeEval extends Command
             $this->line(($failed === [] ? '<info>pass</info>' : '<error>FAIL</error>')."  {$case['name']}".($failed ? ': '.implode('; ', $failed) : ''));
         }
 
-        DB::rollBack();
-
-        $rate = count($rows) ? round(100 * $passed / count($rows), 1) : 0;
-        $this->newLine();
-        $this->table(['model', 'cases', 'passed', 'pass rate', 'cost'], [[$model, count($rows), $passed, "{$rate}%", Cost::format($spent)]]);
-
-        if ($this->option('save')) {
-            $path = base_path("evals/results/{$this->argument('set')}-{$model}-".now()->format('Y-m-d').'.json');
-            file_put_contents($path, json_encode(['model' => $model, 'ran_at' => now()->toIso8601String(), 'pass_rate' => $rate, 'cost' => round($spent, 6), 'cases' => $rows], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n");
-            $this->info("Saved to {$path}");
-        }
-
-        return $rate >= (float) $this->option('min') ? self::SUCCESS : self::FAILURE;
+        return [$rows, $passed, $spent];
     }
 }

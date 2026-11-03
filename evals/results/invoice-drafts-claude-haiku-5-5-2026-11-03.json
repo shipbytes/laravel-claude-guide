@@ -1,8 +1,8 @@
 {
     "model": "claude-haiku-5-5",
-    "ran_at": "2026-11-03T00:01:50+00:00",
-    "pass_rate": 91.7,
-    "cost": 0.002023,
+    "ran_at": "2026-11-03T00:08:22+00:00",
+    "pass_rate": 100,
+    "cost": 0.001968,
     "cases": [
         {
             "case": "hours at a rate plus a flat fee",
@@ -31,7 +31,7 @@
         {
             "case": "a line with no price is flagged",
             "pass": true,
-            "cost": 0.0001689,
+            "cost": 0.0001684,
             "failed": []
         },
         {
@@ -43,7 +43,7 @@
         {
             "case": "yen, whole numbers",
             "pass": true,
-            "cost": 0.0001461,
+            "cost": 0.0001451,
             "failed": []
         },
         {
@@ -54,11 +54,9 @@
         },
         {
             "case": "unsupported currency is flagged",
-            "pass": false,
-            "cost": 0.0003117,
-            "failed": [
-                "line 0 price 0 ≠ 1000"
-            ]
+            "pass": true,
+            "cost": 0.0002577,
+            "failed": []
         },
         {
             "case": "three lines, mixed quantities",

@@ -25,7 +25,7 @@ final class Assistant
         $tools = new AssistantTools($conversation->company);
 
         $runner = $this->claude->beta->messages->toolRunner(
-            maxTokens: 2048,
+            maxTokens: 8192,
             messages: $messages,
             model: $model,
             tools: $tools->all(),

@@ -45,7 +45,7 @@ it('writes the month from facts the app computed and stores it', function () {
         ->toContain('Overdue at the end of the month: 1.')
         ->toContain('INV-2026-0040 for Acme GmbH, €1,200.00, due 2026-10-19')
         ->and($claude->requests[1]['body']['stream'])->toBeTrue()
-        ->and($claude->requests[1]['body']['max_tokens'])->toBe(4096);
+        ->and($claude->requests[1]['body']['max_tokens'])->toBe(16000);
 
     expect(ClaudeCall::sole()->feature)->toBe('summary');
 });
