@@ -1,0 +1,76 @@
+{
+    "format": {
+        "type": "json_schema",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "clientName": {
+                    "type": "string",
+                    "description": "The client, copied exactly from the list of known clients. Omit this field if the text names none of them"
+                },
+                "currency": {
+                    "type": "string",
+                    "enum": [
+                        "EUR",
+                        "USD",
+                        "GBP",
+                        "JPY"
+                    ],
+                    "description": "Invoice currency; the company default unless the text says otherwise"
+                },
+                "discountPercent": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Whole-invoice discount in percent; 0 when none is mentioned"
+                },
+                "lines": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "description": {
+                                "type": "string",
+                                "description": "What was sold, as it should appear on the invoice"
+                            },
+                            "quantity": {
+                                "type": "number",
+                                "description": "How many; 1 for a flat fee"
+                            },
+                            "unitPrice": {
+                                "type": "number",
+                                "description": "Price per unit in major currency units, e.g. 150.00; 0 if the text gives no price"
+                            },
+                            "taxRate": {
+                                "type": "number",
+                                "description": "Tax rate in percent for this line. Omit this field to use the company default"
+                            }
+                        },
+                        "required": [
+                            "description",
+                            "quantity",
+                            "unitPrice"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "description": "The invoice lines, in the order they were described"
+                },
+                "notes": {
+                    "type": "string",
+                    "description": "Notes for the invoice footer. Omit this field unless the text asks for some"
+                },
+                "unresolved": {
+                    "type": "string",
+                    "description": "Anything in the text that could not be turned into a field: an unknown client, a line without a price, an unsupported currency. One short sentence each. Omit this field when everything mapped"
+                }
+            },
+            "required": [
+                "currency",
+                "discountPercent",
+                "lines"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "effort": "low"
+}

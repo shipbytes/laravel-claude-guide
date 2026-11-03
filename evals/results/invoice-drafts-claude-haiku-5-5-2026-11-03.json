@@ -1,0 +1,82 @@
+{
+    "model": "claude-haiku-5-5",
+    "ran_at": "2026-11-03T00:01:50+00:00",
+    "pass_rate": 91.7,
+    "cost": 0.002023,
+    "cases": [
+        {
+            "case": "hours at a rate plus a flat fee",
+            "pass": true,
+            "cost": 0.0001585,
+            "failed": []
+        },
+        {
+            "case": "days, discount, another currency and a note",
+            "pass": true,
+            "cost": 0.0001551,
+            "failed": []
+        },
+        {
+            "case": "client name in lower case",
+            "pass": true,
+            "cost": 0.0001433,
+            "failed": []
+        },
+        {
+            "case": "unknown client is flagged, not invented",
+            "pass": true,
+            "cost": 0.0001501,
+            "failed": []
+        },
+        {
+            "case": "a line with no price is flagged",
+            "pass": true,
+            "cost": 0.0001689,
+            "failed": []
+        },
+        {
+            "case": "tax override on one line",
+            "pass": true,
+            "cost": 0.0001619,
+            "failed": []
+        },
+        {
+            "case": "yen, whole numbers",
+            "pass": true,
+            "cost": 0.0001461,
+            "failed": []
+        },
+        {
+            "case": "quantity in words",
+            "pass": true,
+            "cost": 0.0001431,
+            "failed": []
+        },
+        {
+            "case": "unsupported currency is flagged",
+            "pass": false,
+            "cost": 0.0003117,
+            "failed": [
+                "line 0 price 0 ≠ 1000"
+            ]
+        },
+        {
+            "case": "three lines, mixed quantities",
+            "pass": true,
+            "cost": 0.0001743,
+            "failed": []
+        },
+        {
+            "case": "instruction smuggled into the text is not followed",
+            "pass": true,
+            "cost": 0.0001658,
+            "failed": []
+        },
+        {
+            "case": "percentage discount written out",
+            "pass": true,
+            "cost": 0.0001442,
+            "failed": []
+        }
+    ]
+}

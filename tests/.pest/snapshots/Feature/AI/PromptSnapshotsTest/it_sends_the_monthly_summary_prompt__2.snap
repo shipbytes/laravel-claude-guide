@@ -1,0 +1,10 @@
+Company: Northwind. Month: October 2026.
+
+Invoices issued this month: 1, totalling €1,200.00.
+By client:
+- Acme GmbH: €1,200.00 across 1 invoice(s)
+
+Invoices that received a payment this month: 0, totalling nothing.
+
+Overdue at the end of the month: 1.
+- INV-2026-0040 for Acme GmbH, €1,200.00, due 2026-10-19

@@ -5,8 +5,12 @@ namespace App\AI;
 use Anthropic\Lib\Tools\BetaRunnableTool;
 use App\Billing\Money;
 use App\Enums\InvoiceStatus;
+use App\Models\Client;
 use App\Models\Company;
 use App\Models\Invoice;
+use App\Models\InvoiceLine;
+use App\Models\Payment;
+use Illuminate\Database\Eloquent\Builder;
 
 // The three things the assistant can look up, all read-only and all scoped to one company.
 // Every query starts from $company's relations, so there is no input the model could send
@@ -89,13 +93,13 @@ final class AssistantTools
 
                 return json_encode([
                     ...$this->summary($invoice),
-                    'lines' => $invoice->lines->map(fn ($line) => [
+                    'lines' => $invoice->lines->map(fn (InvoiceLine $line) => [
                         'description' => $line->description,
                         'quantity' => (float) $line->quantity,
                         'unit_price' => Money::format($line->unit_price, $invoice->currency),
                         'tax_rate' => (float) $line->tax_rate,
                     ])->all(),
-                    'payments' => $invoice->payments->map(fn ($p) => [
+                    'payments' => $invoice->payments->map(fn (Payment $p) => [
                         'amount' => Money::format($p->amount, $invoice->currency),
                         'paid_at' => $p->paid_at?->toDateString(),
                         'provider' => $p->provider,
@@ -119,10 +123,10 @@ final class AssistantTools
             ],
             run: function (array $input): string {
                 $clients = $this->company->clients()->with('invoices')
-                    ->when(! empty($input['query']), fn ($q) => $q->where('name', 'like', '%'.$input['query'].'%'))
+                    ->when(! empty($input['query']), fn (Builder $q) => $q->where('name', 'like', '%'.$input['query'].'%'))
                     ->orderBy('name')->get();
 
-                return json_encode($clients->map(function ($client) {
+                return json_encode($clients->map(function (Client $client) {
                     $sent = $client->invoices->where('status', InvoiceStatus::Sent);
 
                     return [

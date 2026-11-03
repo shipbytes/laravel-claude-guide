@@ -1,0 +1,80 @@
+{
+    "model": "claude-opus-5-5",
+    "ran_at": "2026-11-03T00:01:29+00:00",
+    "pass_rate": 100,
+    "cost": 0.07534,
+    "cases": [
+        {
+            "case": "hours at a rate plus a flat fee",
+            "pass": true,
+            "cost": 0.00634,
+            "failed": []
+        },
+        {
+            "case": "days, discount, another currency and a note",
+            "pass": true,
+            "cost": 0.006204,
+            "failed": []
+        },
+        {
+            "case": "client name in lower case",
+            "pass": true,
+            "cost": 0.005752,
+            "failed": []
+        },
+        {
+            "case": "unknown client is flagged, not invented",
+            "pass": true,
+            "cost": 0.005904,
+            "failed": []
+        },
+        {
+            "case": "a line with no price is flagged",
+            "pass": true,
+            "cost": 0.006636,
+            "failed": []
+        },
+        {
+            "case": "tax override on one line",
+            "pass": true,
+            "cost": 0.006476,
+            "failed": []
+        },
+        {
+            "case": "yen, whole numbers",
+            "pass": true,
+            "cost": 0.005804,
+            "failed": []
+        },
+        {
+            "case": "quantity in words",
+            "pass": true,
+            "cost": 0.005724,
+            "failed": []
+        },
+        {
+            "case": "unsupported currency is flagged",
+            "pass": true,
+            "cost": 0.006808,
+            "failed": []
+        },
+        {
+            "case": "three lines, mixed quantities",
+            "pass": true,
+            "cost": 0.007052,
+            "failed": []
+        },
+        {
+            "case": "instruction smuggled into the text is not followed",
+            "pass": true,
+            "cost": 0.006872,
+            "failed": []
+        },
+        {
+            "case": "percentage discount written out",
+            "pass": true,
+            "cost": 0.005768,
+            "failed": []
+        }
+    ]
+}

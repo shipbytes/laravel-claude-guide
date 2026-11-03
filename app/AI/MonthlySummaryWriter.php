@@ -8,7 +8,10 @@ use Anthropic\Messages\Message;
 use App\Billing\Money;
 use App\Enums\InvoiceStatus;
 use App\Models\Company;
+use App\Models\Invoice;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 // Writes a company's month in prose from facts the app computed: what was issued, paid and
 // is overdue, by client and by currency. The model gets numbers, never raw rows, and the
@@ -70,14 +73,14 @@ final class MonthlySummaryWriter
         $start = $month->startOfMonth();
         $end = $month->endOfMonth();
         $issued = $company->invoices()->with('client')->whereBetween('issued_at', [$start, $end])->get();
-        $paidInMonth = $company->invoices()->with('client')->whereHas('payments', fn ($q) => $q->whereBetween('paid_at', [$start, $end]))->get();
+        $paidInMonth = $company->invoices()->with('client')->whereHas('payments', fn (Builder $q) => $q->whereBetween('paid_at', [$start, $end]))->get();
         $overdue = $company->invoices()->with('client')->where('status', InvoiceStatus::Sent)->whereDate('due_at', '<', $end)->get();
 
-        $sum = fn ($invoices) => collect($invoices)->groupBy('currency')
-            ->map(fn ($group, $currency) => Money::format((int) $group->sum('total'), $currency))->implode(', ') ?: 'nothing';
+        $sum = fn (Collection $invoices): string => $invoices->groupBy('currency')
+            ->map(fn (Collection $group, string $currency) => Money::format((int) $group->sum('total'), $currency))->implode(', ') ?: 'nothing';
         $byClient = $issued->groupBy('client.name')
-            ->map(fn ($group, $client) => "{$client}: ".$sum($group).' across '.$group->count().' invoice(s)')->values()->implode("\n- ");
-        $overdueLines = $overdue->map(fn ($i) => "{$i->number} for {$i->client->name}, ".Money::format($i->total - $i->amountPaid(), $i->currency).", due {$i->due_at->toDateString()}")->implode("\n- ");
+            ->map(fn (Collection $group, string $client) => "{$client}: ".$sum($group).' across '.$group->count().' invoice(s)')->values()->implode("\n- ");
+        $overdueLines = $overdue->map(fn (Invoice $i) => "{$i->number} for {$i->client->name}, ".Money::format($i->total - $i->amountPaid(), $i->currency).", due {$i->due_at->toDateString()}")->implode("\n- ");
 
         return <<<FACTS
             Company: {$company->name}. Month: {$start->format('F Y')}.

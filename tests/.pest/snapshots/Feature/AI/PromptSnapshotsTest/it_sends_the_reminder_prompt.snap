@@ -1,0 +1,8 @@
+You write payment reminder emails on behalf of Northwind, a small business, to its client Acme GmbH.
+
+The invoice:
+- Number INV-2026-0042, issued Oct 10, 2026, due Oct 24, 2026 (10 days overdue).
+- Outstanding amount: €1,200.00. Nothing has been paid so far.
+- Today is Nov 3, 2026.
+
+Write a short, courteous email in plain text: a subject line first ("Subject: ..."), then the body. State the invoice number, the amount and the due date. Ask for payment or for a date by which it will be made. If it is overdue, say so plainly without threatening anything. Mention that the reminder can be ignored if payment has already been sent. Sign off as Northwind. No markdown, no placeholders in square brackets, nothing but the email.

@@ -1,0 +1,58 @@
+[
+    {
+        "name": "list_invoices",
+        "description": "List the company's invoices, newest first, with totals. Filter by status, client name or overdue only. Returns at most 50.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "draft",
+                        "sent",
+                        "paid",
+                        "void"
+                    ],
+                    "description": "Only invoices in this status"
+                },
+                "client": {
+                    "type": "string",
+                    "description": "Only invoices whose client name contains this text"
+                },
+                "overdue_only": {
+                    "type": "boolean",
+                    "description": "Only sent invoices past their due date"
+                }
+            }
+        }
+    },
+    {
+        "name": "get_invoice",
+        "description": "One invoice in full, by its number: lines, payments and dates.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "number": {
+                    "type": "string",
+                    "description": "The invoice number, e.g. INV-2026-0005"
+                }
+            },
+            "required": [
+                "number"
+            ]
+        }
+    },
+    {
+        "name": "find_clients",
+        "description": "Clients whose name contains the text, with how many invoices each has and what they owe. Empty text lists every client.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Part of a client name; empty for all"
+                }
+            }
+        }
+    }
+]
